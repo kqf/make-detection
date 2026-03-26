@@ -34,9 +34,14 @@ def plot(frame: np.ndarray, sample: Sample[Annotation]) -> np.ndarray:
 
 
 def test_objects():
-    objects = make_objects(
-        n_samples=100,
+    samples = make_objects(
+        n_samples=10,
         distribution_count=distribution_count,
         distribution_size=distribution_size,
     )
-    print(objects)
+    # sourcery skip: no-loop-in-tests
+    for sample in samples:
+        image = plot(np.full((480, 640, 3), 255, dtype=np.uint8), sample)
+        cv2.imshow("Sample", image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
