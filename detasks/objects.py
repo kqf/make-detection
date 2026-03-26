@@ -2,6 +2,7 @@ import math
 import random
 from dataclasses import dataclass
 from typing import Callable, Generic, TypeVar
+
 import numpy as np
 
 RelativeXYXY = tuple[float, float, float, float]
@@ -99,7 +100,7 @@ def make_objects(
                 annotations.append(
                     Annotation(
                         bbox=bbox,
-                        label=1,
+                        label="1",
                         score=0.0,
                     )
                 )
