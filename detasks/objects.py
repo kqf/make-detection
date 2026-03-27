@@ -98,10 +98,9 @@ def make_objects(
     n_samples: int,
     allow_overlaps: bool = False,
     allow_on_border: bool = False,
+    max_attempts: int = 100,
 ) -> list[Sample[Annotation]]:
     output = []
-    max_attempts = 100
-
     for i in range(n_samples):
         n_objects = draw_count()
         annotations: list[Annotation] = []
