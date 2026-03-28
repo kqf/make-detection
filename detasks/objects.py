@@ -3,6 +3,7 @@ import random
 from dataclasses import dataclass
 from typing import Callable, Generic, TypeVar
 
+import cv2
 import numpy as np
 
 RelativeXYXY = tuple[float, float, float, float]
@@ -128,3 +129,96 @@ def make_objects(
         output.append(Sample(file_name=f"{i}.png", annotations=annotations))
 
     return output
+
+
+def box_to_pixels(bbox, w, h):
+    x1, y1, x2, y2 = bbox
+
+    px1, py1 = int(x1 * w), int(y1 * h)
+    px2, py2 = int(x2 * w), int(y2 * h)
+
+    cx = (px1 + px2) // 2
+    cy = (py1 + py2) // 2
+    bw = px2 - px1
+    bh = py2 - py1
+    return cx, cy, bw, bh
+
+
+def circle(frame, bbox, label, color, thickness):
+    h, w = frame.shape[:2]
+    px1, py1, px2, py2, cx, cy, bw, bh = box_to_pixels(bbox, w, h)
+
+    radius = min(bw, bh) // 2
+    cv2.circle(frame, (cx, cy), radius, color, thickness)
+    return frame
+
+
+def cross(frame, bbox, label, color, thickness):
+    h, w = frame.shape[:2]
+    px1, py1, px2, py2, cx, cy, bw, bh = box_to_pixels(bbox, w, h)
+
+    cv2.line(frame, (px1, py1), (px2, py2), color, thickness)
+    cv2.line(frame, (px1, py2), (px2, py1), color, thickness)
+    return frame
+
+
+def ngon(frame, bbox, label, color, thickness):
+    h, w = frame.shape[:2]
+    px1, py1, px2, py2, cx, cy, bw, bh = box_to_pixels(bbox, w, h)
+
+    n = max(3, int(label))
+    radius = min(bw, bh) / 2.0
+
+    pts = []
+    for i in range(n):
+        theta = 2 * math.pi * i / n - math.pi / 2
+        x = cx + radius * math.cos(theta)
+        y = cy + radius * math.sin(theta)
+        pts.append([int(x), int(y)])
+
+    pts = np.array(pts, dtype=np.int32).reshape((-1, 1, 2))
+
+    if thickness < 0:
+        cv2.fillPoly(frame, [pts], color)
+    else:
+        cv2.polylines(frame, [pts], True, color, thickness)
+
+    return frame
+
+
+_SHAPES = {
+    1: circle,
+    2: cross,
+}
+
+
+def render_sample(
+    frame: np.ndarray,
+    sample: Sample[Annotation],
+    color_map: dict[int, tuple[int, int, int]] | None = None,
+    thickness: int = 2,
+    fill: bool = False,
+):
+    def get_color(label: int):
+        if color_map and label in color_map:
+            return color_map[label]
+        return (
+            int((37 * label) % 255),
+            int((17 * label) % 255),
+            int((97 * label) % 255),
+        )
+
+    for ann in sample.annotations:
+        label = int(ann.label)
+        color = get_color(label)
+        render_fn = _SHAPES.get(label, ngon)
+        draw_thickness = -1 if fill else thickness
+        frame = render_fn(
+            frame,
+            ann.bbox,
+            label,
+            color,
+            draw_thickness,
+        )
+
+    return frame
