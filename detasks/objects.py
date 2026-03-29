@@ -175,21 +175,28 @@ def cross(frame, bbox, label, color, thickness):
     return frame
 
 
+def map_to_bbox(cx, cy, bw, bh, pts):
+    sx = bw / 2.0
+    sy = bh / 2.0
+
+    return np.array(
+        [[int(cx + x * sx), int(cy + y * sy)] for x, y in pts],
+        dtype=np.int32,
+    ).reshape((-1, 1, 2))
+
+
 def ngon(frame, bbox, label, color, thickness):
     h, w = frame.shape[:2]
-    px1, py1, px2, py2, cx, cy, bw, bh = box_to_pixels(bbox, w, h)
+    _, _, _, _, cx, cy, bw, bh = box_to_pixels(bbox, w, h)
 
     n = max(3, int(label))
 
-    # unit circle points
     pts = []
     for i in range(n):
         theta = 2 * math.pi * i / n - math.pi / 2
-        x = math.cos(theta)
-        y = math.sin(theta)
-        pts.append((x, y))
+        pts.append((math.cos(theta), math.sin(theta)))
 
-    pts = fit_to_bbox(cx, cy, bw, bh, pts)
+    pts = map_to_bbox(cx, cy, bw, bh, pts)
 
     if thickness < 0:
         cv2.fillPoly(frame, [pts], color)
