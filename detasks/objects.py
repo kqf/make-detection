@@ -161,8 +161,8 @@ def circle(frame, bbox, label, color, thickness):
     h, w = frame.shape[:2]
     px1, py1, px2, py2, cx, cy, bw, bh = box_to_pixels(bbox, w, h)
 
-    radius = min(bw, bh) // 2
-    cv2.circle(frame, (cx, cy), radius, color, thickness)
+    axes = (bw // 2, bh // 2)
+    cv2.ellipse(frame, (cx, cy), axes, 0, 0, 360, color, thickness)
     return frame
 
 
