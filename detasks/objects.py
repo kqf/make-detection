@@ -145,6 +145,18 @@ def box_to_pixels(bbox, w, h):
     return px1, py1, px2, py2, cx, cy, bw, bh
 
 
+def fit_to_bbox(cx, cy, bw, bh, pts):
+    rx = bw / 2.0
+    ry = bh / 2.0
+
+    out = []
+    for x, y in pts:
+        px = cx + x * rx
+        py = cy + y * ry
+        out.append([int(px), int(py)])
+    return np.array(out, dtype=np.int32).reshape((-1, 1, 2))
+
+
 def circle(frame, bbox, label, color, thickness):
     h, w = frame.shape[:2]
     px1, py1, px2, py2, cx, cy, bw, bh = box_to_pixels(bbox, w, h)
@@ -168,16 +180,16 @@ def ngon(frame, bbox, label, color, thickness):
     px1, py1, px2, py2, cx, cy, bw, bh = box_to_pixels(bbox, w, h)
 
     n = max(3, int(label))
-    radius = min(bw, bh) / 2.0
 
+    # unit circle points
     pts = []
     for i in range(n):
         theta = 2 * math.pi * i / n - math.pi / 2
-        x = cx + radius * math.cos(theta)
-        y = cy + radius * math.sin(theta)
-        pts.append([int(x), int(y)])
+        x = math.cos(theta)
+        y = math.sin(theta)
+        pts.append((x, y))
 
-    pts = np.array(pts, dtype=np.int32).reshape((-1, 1, 2))
+    pts = fit_to_bbox(cx, cy, bw, bh, pts)
 
     if thickness < 0:
         cv2.fillPoly(frame, [pts], color)
