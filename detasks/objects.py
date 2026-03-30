@@ -85,6 +85,7 @@ def draw_object(
         if not allow_on_border and not _inside_unit(bbox):
             continue
 
+        # TODO: Fix this by doing IoU
         if not allow_overlaps and any(
             _intersects(bbox, ann.bbox) for ann in annotations
         ):
@@ -189,7 +190,7 @@ def ngon(frame, bbox, label, color, thickness):
     h, w = frame.shape[:2]
     _, _, _, _, cx, cy, bw, bh = box_to_pixels(bbox, w, h)
 
-    n = max(3, int(label))
+    n = max(3, label)
 
     pts = []
     for i in range(n):
@@ -229,16 +230,12 @@ def render_sample(
         )
 
     for ann in sample.annotations:
-        label = int(ann.label)
-        color = get_color(label)
-        render_fn = _SHAPES.get(label, ngon)
-        draw_thickness = -1 if fill else thickness
-        frame = render_fn(
+        frame = _SHAPES.get(ann.label, ngon)(
             frame,
             ann.bbox,
-            label,
-            color,
-            draw_thickness,
+            ann.label,
+            get_color(ann.label),
+            thickness=-1 if fill else thickness,
         )
 
     return frame
