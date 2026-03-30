@@ -12,7 +12,7 @@ RelativeXYXY = tuple[float, float, float, float]
 @dataclass
 class Annotation:
     bbox: RelativeXYXY
-    label: str
+    label: int
     score: float
 
 
@@ -121,7 +121,7 @@ def make_objects(
             annotations.append(
                 Annotation(
                     bbox=bbox,
-                    label=f"{i % 10}",
+                    label=i % 10,
                     score=0.0,
                 )
             )
