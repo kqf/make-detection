@@ -23,7 +23,7 @@ def plot(frame: np.ndarray, sample: Sample[Annotation]) -> np.ndarray:
         cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 1)
         cv2.putText(
             img,
-            ann.label,
+            f"{ann.label}",
             (x1, y1 - 2),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.4,
