@@ -194,8 +194,9 @@ def ngon(frame, bbox, label, color, thickness):
     n = max(3, label)
 
     pts = []
+    rotation = math.pi / 6
     for i in range(n):
-        theta = 2 * math.pi * i / n - math.pi / 2
+        theta = 2 * math.pi * i / n - math.pi / 2 + rotation
         pts.append((math.cos(theta), math.sin(theta)))
 
     pts = map_to_bbox(cx, cy, bw, bh, pts)
