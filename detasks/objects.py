@@ -1,4 +1,5 @@
 import math
+import pathlib
 import random
 from dataclasses import dataclass
 from typing import Callable, Generic, TypeVar
@@ -23,6 +24,11 @@ T = TypeVar("T")
 class Sample(Generic[T]):
     file_name: str
     annotations: list[T]
+
+
+def save_samples(path: pathlib.Path, samples: list[Sample]):
+    # TODO: Implmenet me
+    return
 
 
 def _intersects(a: RelativeXYXY, b: RelativeXYXY) -> bool:
@@ -241,3 +247,34 @@ def render_sample(
         )
 
     return frame
+
+
+def make_detection_task(
+    folder: pathlib.Path,
+    resolution: tuple[int, int],
+    images_subfolder: pathlib.Path = pathlib.Path("images"),
+    n_samples: int = 1000,
+    allow_overlaps: bool = False,
+    allow_on_border: bool = False,
+    max_attempts: int = 100,
+    draw_count: Callable[[], int] = distribution_count,
+    draw_size: Callable[[], tuple[float, float]] = distribution_size,
+) -> pathlib.Path:
+    folder.mkdir(exist_ok=False, parents=True)
+    samples = make_objects(
+        draw_count=draw_count,
+        draw_size=draw_size,
+        n_samples=n_samples,
+        allow_overlaps=allow_overlaps,
+        allow_on_border=allow_on_border,
+        max_attempts=max_attempts,
+    )
+    # TODO: implement save samples function
+    save_samples(folder, samples)
+
+    images = folder / images_subfolder
+    for i, sample in enumerate(samples):
+        image = np.full((480, 640, 3), 255, dtype=np.uint8)
+        image = render_sample(image, sample)
+        cv2.imwrite(str(images / f"{i}.png"), image)
+    return folder
