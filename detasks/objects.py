@@ -107,6 +107,7 @@ def make_objects(
     allow_overlaps: bool = False,
     allow_on_border: bool = False,
     max_attempts: int = 100,
+    n_classes: int = 1,
 ) -> list[Sample[Annotation]]:
     output = []
     for i in range(n_samples):
@@ -128,7 +129,7 @@ def make_objects(
             annotations.append(
                 Annotation(
                     bbox=bbox,
-                    label=i % 10,
+                    label=i % n_classes,
                     score=0.0,
                 )
             )
@@ -254,6 +255,7 @@ def make_detection_task(
     resolution: tuple[int, int],
     images_subfolder: pathlib.Path = pathlib.Path("images"),
     n_samples: int = 1000,
+    n_classes: int = 1,
     allow_overlaps: bool = False,
     allow_on_border: bool = False,
     max_attempts: int = 100,
@@ -268,6 +270,7 @@ def make_detection_task(
         allow_overlaps=allow_overlaps,
         allow_on_border=allow_on_border,
         max_attempts=max_attempts,
+        n_classes=n_classes,
     )
     # TODO: implement save samples function
     save_samples(folder, samples)
