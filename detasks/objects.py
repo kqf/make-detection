@@ -134,7 +134,8 @@ def make_objects(
                 )
             )
 
-        output.append(Sample(file_name=f"{i}.png", annotations=annotations))
+def box_to_pixels(bbox, w, h):
+    x1, y1, x2, y2 = bbox
 
     return output
 
