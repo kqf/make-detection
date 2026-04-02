@@ -1,3 +1,4 @@
+import json
 import math
 import pathlib
 import random
@@ -27,8 +28,8 @@ class Sample(Generic[T]):
 
 
 def save_samples(path: pathlib.Path, samples: list[Sample]):
-    # TODO: Implmenet me
-    return
+    with path.open("w", encoding="utf-8") as f:
+        json.dump([s.to_dict() for s in samples], f, indent=4)  # type: ignore
 
 
 def _intersects(a: RelativeXYXY, b: RelativeXYXY) -> bool:
@@ -133,10 +134,7 @@ def make_objects(
                     score=0.0,
                 )
             )
-
-def box_to_pixels(bbox, w, h):
-    x1, y1, x2, y2 = bbox
-
+        output.append(Sample(file_name=f"{i}.png", annotations=annotations))
     return output
 
 
@@ -273,7 +271,6 @@ def make_detection_task(
         max_attempts=max_attempts,
         n_classes=n_classes,
     )
-    # TODO: implement save samples function
     save_samples(folder, samples)
 
     images = folder / images_subfolder
