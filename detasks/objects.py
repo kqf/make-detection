@@ -250,8 +250,8 @@ def render_sample(
 
 
 def make_detection_task(
-    folder: pathlib.Path,
-    resolution: tuple[int, int],
+    annotations: pathlib.Path,
+    resolution: tuple[int, int],  # h, w
     images_subfolder: pathlib.Path = pathlib.Path("images"),
     n_samples: int = 1000,
     n_classes: int = 1,
@@ -261,7 +261,7 @@ def make_detection_task(
     draw_count: Callable[[], int] = distribution_count,
     draw_size: Callable[[], tuple[float, float]] = distribution_size,
 ) -> pathlib.Path:
-    folder.mkdir(exist_ok=False, parents=True)
+    annotations.parent.mkdir(exist_ok=True, parents=True)
     samples = make_objects(
         draw_count=draw_count,
         draw_size=draw_size,
@@ -271,11 +271,11 @@ def make_detection_task(
         max_attempts=max_attempts,
         n_classes=n_classes,
     )
-    save_samples(folder, samples)
+    save_samples(annotations, samples)
 
-    images = folder / images_subfolder
+    images = annotations / images_subfolder
     for i, sample in enumerate(samples):
-        image = np.full((480, 640, 3), 255, dtype=np.uint8)
+        image = np.full((*resolution, 3), 255, dtype=np.uint8)
         image = render_sample(image, sample)
         cv2.imwrite(str(images / f"{i}.png"), image)
-    return folder
+    return annotations
