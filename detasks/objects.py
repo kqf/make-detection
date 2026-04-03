@@ -216,8 +216,8 @@ def ngon(frame, bbox, label, color, thickness):
 
 
 _SHAPES = {
-    1: circle,
-    2: cross,
+    0: circle,
+    1: cross,
 }
 
 
