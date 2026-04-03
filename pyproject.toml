@@ -41,9 +41,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 # NB: Keep it the same as in PyPI
-name = "detasks"
+name = "dadinhos"
 dynamic = ["version"]
-description = "Create detection task"
+description = "Play with the object detection data"
 dependencies = [
     "opencv-python",
     "numpy<2",
