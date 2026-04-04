@@ -7,10 +7,12 @@ from typing import Callable, Generic, TypeVar
 
 import cv2
 import numpy as np
+from dataclasses_json import dataclass_json
 
 RelativeXYXY = tuple[float, float, float, float]
 
 
+@dataclass_json
 @dataclass
 class Annotation:
     bbox: RelativeXYXY
@@ -21,6 +23,7 @@ class Annotation:
 T = TypeVar("T")
 
 
+@dataclass_json
 @dataclass
 class Sample(Generic[T]):
     file_name: str
@@ -34,6 +37,23 @@ def save_samples(path: pathlib.Path, samples: list[Sample]):
 
 def _intersects(a: RelativeXYXY, b: RelativeXYXY) -> bool:
     return a[2] > b[0] and a[0] < b[2] and a[3] > b[1] and a[1] < b[3]
+
+
+def _iou(box: np.ndarray, boxes: np.ndarray) -> np.ndarray:
+    x1 = np.maximum(box[0], boxes[:, 0])
+    y1 = np.maximum(box[1], boxes[:, 1])
+    x2 = np.minimum(box[2], boxes[:, 2])
+    y2 = np.minimum(box[3], boxes[:, 3])
+
+    inter_w = np.clip(x2 - x1, 0.0, None)
+    inter_h = np.clip(y2 - y1, 0.0, None)
+    inter = inter_w * inter_h
+
+    area_box = (box[2] - box[0]) * (box[3] - box[1])
+    area_boxes = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
+
+    union = area_box + area_boxes - inter
+    return np.where(union > 0, inter / union, 0.0)
 
 
 def _inside_unit(b: RelativeXYXY) -> bool:
@@ -74,7 +94,7 @@ def distribution_size():
 def draw_object(
     max_attempts,
     allow_on_border,
-    allow_overlaps,
+    max_iou,
     annotations,
     generate_size,
 ):
@@ -87,17 +107,21 @@ def draw_object(
             continue
 
         x, y = _sample_xy(w, h, allow_on_border)
-        bbox = (x, y, x + w, y + h)
+        bbox = x, y, x + w, y + h
 
         if not allow_on_border and not _inside_unit(bbox):
             continue
 
-        # TODO: Fix this by doing IoU
-        if not allow_overlaps and any(
-            _intersects(bbox, ann.bbox) for ann in annotations
-        ):
+        boxes = np.array(
+            [a.bbox for a in annotations],
+            dtype=np.float32,
+        ).reshape(-1, 4)
+
+        if np.any(_iou(np.array(bbox, dtype=np.float32), boxes) > max_iou):
             continue
-        return bbox
+
+        return tuple(bbox)
+
     return None
 
 
@@ -105,7 +129,7 @@ def make_objects(
     draw_count: Callable[[], int],
     draw_size: Callable[[], tuple[float, float]],
     n_samples: int,
-    allow_overlaps: bool = False,
+    max_iou: float = 0,
     allow_on_border: bool = False,
     max_attempts: int = 100,
     n_classes: int = 1,
@@ -119,7 +143,7 @@ def make_objects(
             bbox = draw_object(
                 max_attempts=max_attempts,
                 allow_on_border=allow_on_border,
-                allow_overlaps=allow_overlaps,
+                max_iou=max_iou,
                 annotations=annotations,
                 generate_size=draw_size,
             )
@@ -255,7 +279,7 @@ def make_detection_task(
     images_subfolder: pathlib.Path = pathlib.Path("images"),
     n_samples: int = 1000,
     n_classes: int = 1,
-    allow_overlaps: bool = False,
+    max_iou: float = 0,
     allow_on_border: bool = False,
     max_attempts: int = 100,
     draw_count: Callable[[], int] = distribution_count,
@@ -266,7 +290,7 @@ def make_detection_task(
         draw_count=draw_count,
         draw_size=draw_size,
         n_samples=n_samples,
-        allow_overlaps=allow_overlaps,
+        max_iou=max_iou,
         allow_on_border=allow_on_border,
         max_attempts=max_attempts,
         n_classes=n_classes,
