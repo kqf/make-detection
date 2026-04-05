@@ -3,10 +3,11 @@ import math
 import pathlib
 import random
 from dataclasses import dataclass
-from typing import Callable, Generic, TypeVar
+from typing import Any, Callable, Generic, TypeVar
 
 import cv2
 import numpy as np
+from dacite import Config, from_dict
 from dataclasses_json import dataclass_json
 
 RelativeXYXY = tuple[float, float, float, float]
@@ -35,8 +36,22 @@ def save_samples(path: pathlib.Path, samples: list[Sample]):
         json.dump([s.to_dict() for s in samples], f, indent=4)  # type: ignore
 
 
-def _intersects(a: RelativeXYXY, b: RelativeXYXY) -> bool:
-    return a[2] > b[0] and a[0] < b[2] and a[3] > b[1] and a[1] < b[3]
+def deserialize(
+    entry: dict[str, Any],
+    sample_type: type[Sample[T]],
+) -> Sample[T]:
+    return from_dict(
+        data_class=sample_type,
+        data=entry,
+        config=Config(cast=[tuple]),
+    )
+
+
+def load_samples(path: pathlib.Path | str) -> list[Sample[Annotation]]:
+    with open(path) as f:
+        df = json.load(f)
+    samples = [deserialize(x, Sample[Annotation]) for x in df]
+    return [s for s in samples if s.annotations]
 
 
 def _iou(box: np.ndarray, boxes: np.ndarray) -> np.ndarray:
@@ -297,7 +312,8 @@ def make_detection_task(
     )
     save_samples(annotations, samples)
 
-    images = annotations / images_subfolder
+    images = annotations.parent / images_subfolder
+    images.mkdir(exist_ok=False, parents=True)
     for i, sample in enumerate(samples):
         image = np.full((*resolution, 3), 255, dtype=np.uint8)
         image = render_sample(image, sample)

@@ -7,6 +7,7 @@ from dadinhos.objects import (
     Sample,
     distribution_count,
     distribution_size,
+    load_samples,
     make_detection_task,
     make_objects,
     render_sample,
@@ -54,5 +55,15 @@ def test_objects():
 
 
 def test_generates(tmp_path):
-    annotations = tmp_path / "data" / "annotations.json"
-    make_detection_task(annotations, resolution=(640, 480))
+    annotations = make_detection_task(
+        tmp_path / "data" / "annotations.json",
+        resolution=(480, 640),
+        n_samples=10,
+    )
+    for sample in load_samples(annotations):
+        image = cv2.imread(annotations.parent / "images" / sample.file_name)
+        image = render_sample(image, sample)
+        image = plot(image, sample=sample)
+        cv2.imshow("Sample", image)
+        cv2.waitKey(1)
+        cv2.destroyAllWindows()
