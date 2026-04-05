@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import pytest
 
-from detasks.objects import (
+from dadinhos.objects import (
     Annotation,
     Sample,
     distribution_count,
