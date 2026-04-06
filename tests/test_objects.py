@@ -61,9 +61,7 @@ def test_generates(tmp_path):
         n_samples=10,
     )
     for sample in load_samples(annotations):
-        print(annotations.parent / sample.file_name)
-        image = cv2.imread(annotations.parent / sample.file_name)
-        print(image)
+        image = cv2.imread(annotations.parent / "images" / sample.file_name)
         image = render_sample(image, sample)
         image = plot(image, sample=sample)
         cv2.imshow("Sample", image)
