@@ -310,12 +310,16 @@ def make_detection_task(
         max_attempts=max_attempts,
         n_classes=n_classes,
     )
-    save_samples(annotations, samples)
 
     images = annotations.parent / images_subfolder
     images.mkdir(exist_ok=False, parents=True)
-    for i, sample in enumerate(samples):
+    for sample in samples:
         image = np.full((*resolution, 3), 255, dtype=np.uint8)
         image = render_sample(image, sample)
-        cv2.imwrite(str(images / f"{i}.png"), image)
+
+        file_name = images / sample.file_name
+        cv2.imwrite(str(file_name), image)
+        sample.file_name = str(file_name.relative_to(annotations.parent))
+
+    save_samples(annotations, samples)
     return annotations
