@@ -1,11 +1,14 @@
 import cv2
 import numpy as np
+import pytest
 
-from detasks.objects import (
+from dadinhos.objects import (
     Annotation,
     Sample,
     distribution_count,
     distribution_size,
+    load_samples,
+    make_detection_task,
     make_objects,
     render_sample,
 )
@@ -34,6 +37,7 @@ def plot(frame: np.ndarray, sample: Sample[Annotation]) -> np.ndarray:
     return img
 
 
+@pytest.mark.skip("")
 def test_objects():
     samples = make_objects(
         n_samples=10,
@@ -47,4 +51,19 @@ def test_objects():
         image = plot(image, sample=sample)
         cv2.imshow("Sample", image)
         cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+
+def test_generates(tmp_path):
+    annotations = make_detection_task(
+        tmp_path / "data" / "annotations.json",
+        resolution=(480, 640),
+        n_samples=10,
+    )
+    for sample in load_samples(annotations):
+        image = cv2.imread(annotations.parent / "images" / sample.file_name)
+        image = render_sample(image, sample)
+        image = plot(image, sample=sample)
+        cv2.imshow("Sample", image)
+        cv2.waitKey(1)
         cv2.destroyAllWindows()
