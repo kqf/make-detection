@@ -1,3 +1,5 @@
+import os
+
 import cv2
 import numpy as np
 import pytest
@@ -12,6 +14,11 @@ from dadinhos.objects import (
     make_objects,
     render_sample,
 )
+
+
+@pytest.fixture
+def headless():
+    return os.environ.get("DISPLAY", "") == ""
 
 
 def plot(frame: np.ndarray, sample: Sample[Annotation]) -> np.ndarray:
@@ -54,13 +61,21 @@ def test_objects():
         cv2.destroyAllWindows()
 
 
-def test_generates(tmp_path):
+def test_generates(tmp_path, headless):
     annotations = make_detection_task(
         tmp_path / "data" / "annotations.json",
         resolution=(480, 640),
         n_samples=10,
     )
+    # sourcery skip: no-loop-in-tests
     for sample in load_samples(annotations):
         image = cv2.imread(annotations.parent / "images" / sample.file_name)
         image = render_sample(image, sample)
         image = plot(image, sample=sample)
+        # sourcery skip: no-conditionals-in-tests
+        if headless:
+            continue
+
+        cv2.imshow("Sample", image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
