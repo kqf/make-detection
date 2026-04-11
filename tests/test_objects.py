@@ -44,8 +44,7 @@ def plot(frame: np.ndarray, sample: Sample[Annotation]) -> np.ndarray:
     return img
 
 
-@pytest.mark.skip("")
-def test_objects():
+def test_objects(headless):
     samples = make_objects(
         n_samples=10,
         draw_count=distribution_count,
