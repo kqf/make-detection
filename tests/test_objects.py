@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import pytest
 
-from dadinhos.objects import (
+from dadinhos.generate import (
     Annotation,
     Sample,
     distribution_count,
