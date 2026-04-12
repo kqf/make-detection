@@ -49,6 +49,7 @@ dependencies = [
     "numpy",
     "dacite",
     "dataclasses-json",
+    "click",
 ]
 readme = "README.rst"
 
