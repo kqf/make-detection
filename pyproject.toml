@@ -53,5 +53,9 @@ dependencies = [
 ]
 readme = "README.rst"
 
+[project.scripts]
+make-binary-detection-task = "dadinhos.generate:make_binary"
+
+
 [tool.setuptools_scm]
 version_scheme = "post-release" # Uses Git tags for versioning
