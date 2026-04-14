@@ -51,7 +51,11 @@ dependencies = [
     "dataclasses-json",
     "click",
 ]
-readme = "README.rst"
+readme = { file = "README.rst", content-type = "text/x-rst" }
+
+[project.scripts]
+make-binary-detection-task = "dadinhos.generate:make_binary"
+
 
 [project.scripts]
 make-binary-detection-task = "dadinhos.generate:make_binary"
