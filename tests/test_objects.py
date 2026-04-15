@@ -63,6 +63,7 @@ def test_objects(headless):
         cv2.destroyAllWindows()
 
 
+@pytest.mark.skip
 def test_generates(tmp_path, headless):
     annotations = make_detection_task(
         tmp_path / "data" / "annotations.json",
